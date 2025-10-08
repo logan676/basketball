@@ -14,7 +14,7 @@ import {
 } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { findLiveGameById } from '../data/scores';
+import { findGameById } from '../data/scores';
 import { colors } from '../theme/colors';
 import type { RootStackParamList } from '../navigation/types';
 
@@ -28,7 +28,7 @@ const GameDetailScreen: React.FC = () => {
   const navigation = useNavigation<GameDetailNavigationProp>();
   const { params } = useRoute<GameDetailRouteProp>();
 
-  const game = findLiveGameById(params.gameId);
+  const game = findGameById(params.gameId);
 
   if (!game) {
     return (
@@ -62,16 +62,45 @@ const GameDetailScreen: React.FC = () => {
       </View>
 
       <View style={styles.scoreCard}>
-        <Text style={styles.status}>{game.status}</Text>
+        <Text
+          style={[
+            styles.status,
+            game.status === 'Live' && styles.statusLive,
+            game.status === 'Final' && styles.statusFinal,
+            game.status === 'Upcoming' && styles.statusUpcoming,
+          ]}
+        >
+          {game.status}
+        </Text>
+        <Text style={styles.leagueTag}>{game.league}</Text>
         <Text style={styles.timer}>{game.startTime}</Text>
+        {game.status === 'Upcoming' ? (
+          <Text style={styles.upcomingNote}>
+            Lineups subject to change. Arrive early for arena giveaways.
+          </Text>
+        ) : null}
         <View style={styles.matchupRow}>
           <View style={styles.teamColumn}>
             <Text style={styles.teamName}>{game.home}</Text>
             <Text style={styles.teamLabel}>Home</Text>
           </View>
-          <Text style={styles.scoreValue}>{game.homeScore}</Text>
+          <Text
+            style={[
+              styles.scoreValue,
+              game.status === 'Upcoming' && styles.scoreUpcoming,
+            ]}
+          >
+            {game.status === 'Upcoming' ? '--' : game.homeScore}
+          </Text>
           <Text style={styles.scoreSeparator}>-</Text>
-          <Text style={styles.scoreValue}>{game.awayScore}</Text>
+          <Text
+            style={[
+              styles.scoreValue,
+              game.status === 'Upcoming' && styles.scoreUpcoming,
+            ]}
+          >
+            {game.status === 'Upcoming' ? '--' : game.awayScore}
+          </Text>
           <View style={styles.teamColumn}>
             <Text style={styles.teamName}>{game.away}</Text>
             <Text style={styles.teamLabel}>Away</Text>
@@ -143,13 +172,35 @@ const styles = StyleSheet.create({
   status: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.danger,
     marginBottom: 6,
+  },
+  statusLive: {
+    color: colors.danger,
+  },
+  statusFinal: {
+    color: colors.textMuted,
+  },
+  statusUpcoming: {
+    color: colors.accent,
+  },
+  leagueTag: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textMuted,
+    marginBottom: 4,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   timer: {
     fontSize: 13,
     color: colors.textMuted,
     marginBottom: 24,
+  },
+  upcomingNote: {
+    fontSize: 12,
+    color: colors.textMuted,
+    marginBottom: 16,
+    textAlign: 'center',
   },
   matchupRow: {
     flexDirection: 'row',
@@ -176,6 +227,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text,
     marginHorizontal: 8,
+  },
+  scoreUpcoming: {
+    color: colors.textMuted,
   },
   scoreSeparator: {
     fontSize: 28,

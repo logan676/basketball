@@ -4,6 +4,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -31,19 +32,38 @@ type PlayersScreenNavigationProp = CompositeNavigationProp<
 
 const PlayersScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<PlayerTab>(playerTabs[0]);
+  const [searchTerm, setSearchTerm] = useState('');
   const navigation = useNavigation<PlayersScreenNavigationProp>();
 
+  const normalizedSearchTerm = useMemo(
+    () => searchTerm.trim().toLowerCase(),
+    [searchTerm],
+  );
+
   const filteredPlayers = useMemo(() => {
+    let base: PlayerProfile[] = [];
     switch (activeTab) {
       case 'Favorites':
-        return players.filter((player) => player.favorite);
+        base = players.filter((player) => player.favorite);
+        break;
       case 'My Players':
         // Placeholder logic: reuse favorites to represent saved players
-        return players.filter((player) => player.favorite);
+        base = players.filter((player) => player.favorite);
+        break;
       default:
-        return players;
+        base = players;
+        break;
     }
-  }, [activeTab]);
+
+    if (normalizedSearchTerm.length === 0) {
+      return base;
+    }
+
+    return base.filter((player) => {
+      const haystack = `${player.name} ${player.team} ${player.position}`.toLowerCase();
+      return haystack.includes(normalizedSearchTerm);
+    });
+  }, [activeTab, normalizedSearchTerm]);
 
   const handleOpenPlayer = useCallback(
     (player: PlayerProfile) => {
@@ -51,6 +71,14 @@ const PlayersScreen: React.FC = () => {
     },
     [navigation],
   );
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+  }, []);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchTerm('');
+  }, []);
 
   return (
     <ScrollView
@@ -67,7 +95,27 @@ const PlayersScreen: React.FC = () => {
 
       <View style={styles.searchBar}>
         <Ionicons name="search-outline" size={18} color={colors.textMuted} />
-        <Text style={styles.searchPlaceholder}>Search players</Text>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search players"
+          placeholderTextColor={colors.textMuted}
+          value={searchTerm}
+          onChangeText={handleSearchChange}
+          selectionColor={colors.primary}
+          autoCapitalize="none"
+          autoCorrect={false}
+          returnKeyType="search"
+        />
+        {searchTerm.length > 0 ? (
+          <TouchableOpacity
+            style={styles.clearButton}
+            onPress={handleClearSearch}
+            accessibilityRole="button"
+            accessibilityLabel="Clear search"
+          >
+            <Ionicons name="close-circle" size={18} color={colors.textMuted} />
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       <View style={styles.tabRow}>
@@ -111,6 +159,20 @@ const PlayersScreen: React.FC = () => {
           </TouchableOpacity>
         ))}
       </View>
+      {filteredPlayers.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Ionicons
+            name="person-circle-outline"
+            size={40}
+            color={colors.textMuted}
+            style={styles.emptyIcon}
+          />
+          <Text style={styles.emptyTitle}>No players match</Text>
+          <Text style={styles.emptySubtitle}>
+            Try another name, team, or tab.
+          </Text>
+        </View>
+      ) : null}
     </ScrollView>
   );
 };
@@ -155,13 +217,18 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 16,
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 6,
     marginBottom: 18,
   },
-  searchPlaceholder: {
+  searchInput: {
+    flex: 1,
     marginLeft: 10,
-    color: colors.textMuted,
+    color: colors.text,
     fontSize: 16,
+    paddingVertical: 10,
+  },
+  clearButton: {
+    marginLeft: 8,
   },
   tabRow: {
     flexDirection: 'row',
@@ -211,6 +278,23 @@ const styles = StyleSheet.create({
   },
   playerTeam: {
     marginTop: 4,
+    fontSize: 14,
+    color: colors.textMuted,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  emptyIcon: {
+    marginBottom: 12,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 6,
+  },
+  emptySubtitle: {
     fontSize: 14,
     color: colors.textMuted,
   },

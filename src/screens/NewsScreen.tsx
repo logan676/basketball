@@ -4,6 +4,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -34,16 +35,49 @@ type NewsScreenNavigationProp = CompositeNavigationProp<
 const NewsScreen: React.FC = () => {
   const [activeCategory, setActiveCategory] =
     useState<NewsCategory>(newsCategories[0]);
+  const [searchTerm, setSearchTerm] = useState('');
   const navigation = useNavigation<NewsScreenNavigationProp>();
   const theme = useTheme();
 
-  const filteredArticles = useMemo(() => {
-    if (activeCategory === 'Top News') {
-      return latestNews;
-    }
+  const normalizedSearchTerm = useMemo(
+    () => searchTerm.trim().toLowerCase(),
+    [searchTerm],
+  );
 
-    return latestNews.filter((article) => article.category === activeCategory);
-  }, [activeCategory]);
+  const filteredArticles = useMemo(() => {
+    const pool: NewsArticle[] = [topStory, ...latestNews];
+
+    return pool.filter((article) => {
+      const matchesCategory =
+        activeCategory === 'Top News'
+          ? true
+          : article.category === activeCategory;
+
+      if (!matchesCategory) {
+        return false;
+      }
+
+      if (normalizedSearchTerm.length === 0) {
+        return true;
+      }
+
+      const haystack = `${article.title} ${article.subtitle ?? ''} ${article.author}`.toLowerCase();
+      return haystack.includes(normalizedSearchTerm);
+    });
+  }, [activeCategory, normalizedSearchTerm]);
+
+  const showTopStory =
+    activeCategory === 'Top News' &&
+    normalizedSearchTerm.length === 0 &&
+    filteredArticles.some((article) => article.id === topStory.id);
+
+  const listArticles = useMemo(
+    () =>
+      filteredArticles.filter(
+        (article) => !(showTopStory && article.id === topStory.id),
+      ),
+    [filteredArticles, showTopStory],
+  );
 
   const handleOpenArticle = useCallback(
     (article: NewsArticle) => {
@@ -51,6 +85,14 @@ const NewsScreen: React.FC = () => {
     },
     [navigation],
   );
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+  }, []);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchTerm('');
+  }, []);
 
   return (
     <ScrollView
@@ -67,7 +109,27 @@ const NewsScreen: React.FC = () => {
 
       <View style={styles.searchBar}>
         <Ionicons name="search-outline" size={18} color={colors.textMuted} />
-        <Text style={styles.searchPlaceholder}>Search news...</Text>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search news"
+          placeholderTextColor={colors.textMuted}
+          value={searchTerm}
+          onChangeText={handleSearchChange}
+          selectionColor={colors.primary}
+          autoCapitalize="none"
+          autoCorrect={false}
+          returnKeyType="search"
+        />
+        {searchTerm.length > 0 ? (
+          <TouchableOpacity
+            style={styles.clearButton}
+            onPress={handleClearSearch}
+            accessibilityRole="button"
+            accessibilityLabel="Clear search"
+          >
+            <Ionicons name="close-circle" size={18} color={colors.textMuted} />
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       <View style={styles.categories}>
@@ -93,31 +155,35 @@ const NewsScreen: React.FC = () => {
         })}
       </View>
 
-      <TouchableOpacity
-        style={styles.topCard}
-        activeOpacity={0.85}
-        onPress={() => handleOpenArticle(topStory)}
-      >
-        <Image source={{ uri: topStory.image }} style={styles.topImage} />
-        <View style={styles.topContent}>
-          <Text style={styles.topTitle}>{topStory.title}</Text>
-          {topStory.subtitle ? (
-            <Text style={styles.topSubtitle}>{topStory.subtitle}</Text>
-          ) : null}
-          <Text style={[styles.timeText, styles.topTime]}>
-            {topStory.timeAgo}
-          </Text>
-        </View>
-      </TouchableOpacity>
+      {showTopStory ? (
+        <TouchableOpacity
+          style={styles.topCard}
+          activeOpacity={0.85}
+          onPress={() => handleOpenArticle(topStory)}
+        >
+          <Image source={{ uri: topStory.image }} style={styles.topImage} />
+          <View style={styles.topContent}>
+            <Text style={styles.topTitle}>{topStory.title}</Text>
+            {topStory.subtitle ? (
+              <Text style={styles.topSubtitle}>{topStory.subtitle}</Text>
+            ) : null}
+            <Text style={[styles.timeText, styles.topTime]}>
+              {topStory.timeAgo}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      ) : null}
 
-      <Text style={styles.sectionTitle}>Latest news</Text>
+      <Text style={styles.sectionTitle}>
+        {normalizedSearchTerm.length > 0 ? 'Search results' : 'Latest news'}
+      </Text>
       <View>
-        {filteredArticles.map((article, index) => (
+        {listArticles.map((article, index) => (
           <TouchableOpacity
             key={article.id}
             style={[
               styles.latestItem,
-              index !== filteredArticles.length - 1 && styles.latestItemSpacing,
+              index !== listArticles.length - 1 && styles.latestItemSpacing,
             ]}
             activeOpacity={0.85}
             onPress={() => handleOpenArticle(article)}
@@ -136,6 +202,20 @@ const NewsScreen: React.FC = () => {
             />
           </TouchableOpacity>
         ))}
+        {listArticles.length === 0 && !showTopStory ? (
+          <View style={styles.emptyState}>
+            <Ionicons
+              name="search-outline"
+              size={36}
+              color={colors.textMuted}
+              style={styles.emptyIcon}
+            />
+            <Text style={styles.emptyTitle}>No articles found</Text>
+            <Text style={styles.emptySubtitle}>
+              Try a different keyword or category.
+            </Text>
+          </View>
+        ) : null}
       </View>
     </ScrollView>
   );
@@ -180,13 +260,18 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 16,
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 6,
     marginBottom: 18,
   },
-  searchPlaceholder: {
+  searchInput: {
+    flex: 1,
     marginLeft: 10,
-    color: colors.textMuted,
+    color: colors.text,
     fontSize: 16,
+    paddingVertical: 10,
+  },
+  clearButton: {
+    marginLeft: 8,
   },
   categories: {
     flexDirection: 'row',
@@ -276,6 +361,23 @@ const styles = StyleSheet.create({
   },
   latestTime: {
     marginTop: 6,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  emptyIcon: {
+    marginBottom: 12,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 6,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: colors.textMuted,
   },
 });
 

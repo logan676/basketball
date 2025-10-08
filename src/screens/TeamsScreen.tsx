@@ -4,6 +4,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -31,18 +32,37 @@ type TeamsScreenNavigationProp = CompositeNavigationProp<
 
 const TeamsScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TeamTab>(teamTabs[0]);
+  const [searchTerm, setSearchTerm] = useState('');
   const navigation = useNavigation<TeamsScreenNavigationProp>();
 
+  const normalizedSearchTerm = useMemo(
+    () => searchTerm.trim().toLowerCase(),
+    [searchTerm],
+  );
+
   const filteredTeams = useMemo(() => {
+    let base: TeamProfile[] = [];
     switch (activeTab) {
       case 'Favorites':
-        return teams.slice(0, 2);
+        base = teams.slice(0, 2);
+        break;
       case 'Following':
-        return teams.slice(0, 3);
+        base = teams.slice(0, 3);
+        break;
       default:
-        return teams;
+        base = teams;
+        break;
     }
-  }, [activeTab]);
+
+    if (normalizedSearchTerm.length === 0) {
+      return base;
+    }
+
+    return base.filter((team) => {
+      const haystack = `${team.name} ${team.city} ${team.conference}`.toLowerCase();
+      return haystack.includes(normalizedSearchTerm);
+    });
+  }, [activeTab, normalizedSearchTerm]);
 
   const handleOpenTeam = useCallback(
     (team: TeamProfile) => {
@@ -50,6 +70,14 @@ const TeamsScreen: React.FC = () => {
     },
     [navigation],
   );
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+  }, []);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchTerm('');
+  }, []);
 
   return (
     <ScrollView
@@ -66,7 +94,27 @@ const TeamsScreen: React.FC = () => {
 
       <View style={styles.searchBar}>
         <Ionicons name="search-outline" size={18} color={colors.textMuted} />
-        <Text style={styles.searchPlaceholder}>Search for teams</Text>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search teams"
+          placeholderTextColor={colors.textMuted}
+          value={searchTerm}
+          onChangeText={handleSearchChange}
+          selectionColor={colors.primary}
+          autoCapitalize="none"
+          autoCorrect={false}
+          returnKeyType="search"
+        />
+        {searchTerm.length > 0 ? (
+          <TouchableOpacity
+            style={styles.clearButton}
+            onPress={handleClearSearch}
+            accessibilityRole="button"
+            accessibilityLabel="Clear search"
+          >
+            <Ionicons name="close-circle" size={18} color={colors.textMuted} />
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       <View style={styles.tabRow}>
@@ -110,6 +158,20 @@ const TeamsScreen: React.FC = () => {
           </TouchableOpacity>
         ))}
       </View>
+      {filteredTeams.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Ionicons
+            name="business-outline"
+            size={40}
+            color={colors.textMuted}
+            style={styles.emptyIcon}
+          />
+          <Text style={styles.emptyTitle}>No teams match</Text>
+          <Text style={styles.emptySubtitle}>
+            Adjust the search term or tab.
+          </Text>
+        </View>
+      ) : null}
     </ScrollView>
   );
 };
@@ -154,13 +216,18 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 16,
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 6,
     marginBottom: 18,
   },
-  searchPlaceholder: {
+  searchInput: {
+    flex: 1,
     marginLeft: 10,
-    color: colors.textMuted,
+    color: colors.text,
     fontSize: 16,
+    paddingVertical: 10,
+  },
+  clearButton: {
+    marginLeft: 8,
   },
   tabRow: {
     flexDirection: 'row',
@@ -210,6 +277,23 @@ const styles = StyleSheet.create({
   },
   teamCity: {
     marginTop: 4,
+    fontSize: 14,
+    color: colors.textMuted,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  emptyIcon: {
+    marginBottom: 12,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 6,
+  },
+  emptySubtitle: {
     fontSize: 14,
     color: colors.textMuted,
   },

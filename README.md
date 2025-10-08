@@ -5,6 +5,8 @@ Cross-platform basketball companion built with Expo and React Native. The app su
 ## Features
 - Bottom tab navigation across News, Scores, Teams, Players, and More.
 - Tap any list item (news story, game, team, player) to open an in-depth native stack detail view.
+- Inline search filters on news, teams, and players lists.
+- Real NBA headshots plus official team logos—no stock placeholders.
 - Strong typing across navigation params, data models, and theming with strict TypeScript.
 - Works in Expo Go with shared code targeting iOS, Android, and web.
 

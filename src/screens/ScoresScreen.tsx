@@ -17,9 +17,11 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   leagues,
   liveGames,
+  pastGames,
+  upcomingGames,
   scoreTabs,
+  type Game,
   type LeagueFilter,
-  type LiveGame,
   type ScoreTab,
 } from '../data/scores';
 import { colors } from '../theme/colors';
@@ -36,23 +38,22 @@ const ScoresScreen: React.FC = () => {
   const navigation = useNavigation<ScoresScreenNavigationProp>();
 
   const filteredGames = useMemo(() => {
-    // Live demo data only contains live games; in a full app this would switch datasets.
-    const games = liveGames.filter((game) => {
-      if (activeLeague === 'All Leagues') {
-        return true;
-      }
-      return game.broadcaster.toUpperCase().includes(activeLeague.replace('NCAA', '').trim());
-    });
+    const dataset =
+      activeTab === 'Live'
+        ? liveGames
+        : activeTab === 'Past'
+          ? pastGames
+          : upcomingGames;
 
-    if (activeTab === 'Live') {
-      return games;
+    if (activeLeague === 'All Leagues') {
+      return dataset;
     }
 
-    return games;
+    return dataset.filter((game) => game.league === activeLeague);
   }, [activeLeague, activeTab]);
 
   const handleOpenGame = useCallback(
-    (game: LiveGame) => {
+    (game: Game) => {
       navigation.navigate('GameDetail', { gameId: game.id });
     },
     [navigation],
@@ -115,7 +116,24 @@ const ScoresScreen: React.FC = () => {
       </View>
 
       <View>
-        {filteredGames.map((game, index) => (
+        {filteredGames.map((game, index) => {
+          const isLive = game.status === 'Live';
+          const isFinal = game.status === 'Final';
+          const showScores = game.status !== 'Upcoming';
+          const statusDotStyle = [
+            styles.statusDot,
+            isLive && styles.statusDotLive,
+            isFinal && styles.statusDotFinal,
+            !isLive && !isFinal && styles.statusDotUpcoming,
+          ];
+          const statusTextStyle = [
+            styles.statusText,
+            isLive && styles.statusTextLive,
+            isFinal && styles.statusTextFinal,
+            !isLive && !isFinal && styles.statusTextUpcoming,
+          ];
+
+          return (
           <TouchableOpacity
             key={game.id}
             style={[
@@ -130,8 +148,8 @@ const ScoresScreen: React.FC = () => {
                 {game.home} vs. {game.away}
               </Text>
               <View style={styles.statusRow}>
-                <View style={styles.liveDot} />
-                <Text style={styles.statusText}>{game.status}</Text>
+                <View style={statusDotStyle} />
+                <Text style={statusTextStyle}>{game.status}</Text>
                 <Text style={styles.startTime}>{game.startTime}</Text>
               </View>
               <Text style={styles.broadcastText}>
@@ -139,9 +157,30 @@ const ScoresScreen: React.FC = () => {
               </Text>
             </View>
             <View style={styles.scoreContainer}>
-              <Text style={styles.scoreText}>{game.homeScore}</Text>
-              <Text style={styles.scoreDivider}>-</Text>
-              <Text style={styles.scoreText}>{game.awayScore}</Text>
+              <Text
+                style={[
+                  styles.scoreText,
+                  !showScores && styles.scoreTextUpcoming,
+                ]}
+              >
+                {showScores ? game.homeScore : '--'}
+              </Text>
+              <Text
+                style={[
+                  styles.scoreDivider,
+                  !showScores && styles.scoreTextUpcoming,
+                ]}
+              >
+                -
+              </Text>
+              <Text
+                style={[
+                  styles.scoreText,
+                  !showScores && styles.scoreTextUpcoming,
+                ]}
+              >
+                {showScores ? game.awayScore : '--'}
+              </Text>
             </View>
             <Ionicons
               name="chevron-forward"
@@ -149,7 +188,8 @@ const ScoresScreen: React.FC = () => {
               color={colors.textMuted}
             />
           </TouchableOpacity>
-        ))}
+        );
+        })}
       </View>
     </ScrollView>
   );
@@ -261,18 +301,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 4,
   },
-  liveDot: {
+  statusDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.danger,
+    backgroundColor: colors.border,
     marginRight: 6,
+  },
+  statusDotLive: {
+    backgroundColor: colors.danger,
+  },
+  statusDotFinal: {
+    backgroundColor: colors.textMuted,
+  },
+  statusDotUpcoming: {
+    backgroundColor: colors.accent,
   },
   statusText: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.danger,
     marginRight: 8,
+  },
+  statusTextLive: {
+    color: colors.danger,
+  },
+  statusTextFinal: {
+    color: colors.textMuted,
+  },
+  statusTextUpcoming: {
+    color: colors.accent,
   },
   startTime: {
     fontSize: 13,
@@ -291,6 +348,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: colors.text,
+  },
+  scoreTextUpcoming: {
+    color: colors.textMuted,
   },
   scoreDivider: {
     marginHorizontal: 6,
