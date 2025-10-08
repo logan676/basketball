@@ -7,6 +7,7 @@ Cross-platform basketball companion built with Expo and React Native. The app su
 - Tap any list item (news story, game, team, player) to open an in-depth native stack detail view.
 - Inline search filters on news, teams, and players lists.
 - Real NBA headshots plus official team logos—no stock placeholders.
+- 100+ curated NBA, WNBA, and NCAA headlines powering the News tab with official imagery.
 - Strong typing across navigation params, data models, and theming with strict TypeScript.
 - Works in Expo Go with shared code targeting iOS, Android, and web.
 

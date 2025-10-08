@@ -1,3 +1,5 @@
+import { teams } from './teams';
+
 export type ScoreTab = 'Live' | 'Past' | 'Upcoming';
 export type LeagueFilter = 'All Leagues' | 'NBA' | 'WNBA' | 'NCAAM';
 export type League = 'NBA' | 'WNBA' | 'NCAAM';
@@ -8,6 +10,8 @@ export interface Game {
   league: League;
   home: string;
   away: string;
+  homeLogo: string;
+  awayLogo: string;
   status: GameStatus;
   homeScore: number;
   awayScore: number;
@@ -16,6 +20,38 @@ export interface Game {
   broadcaster: string;
   storyline: string;
 }
+
+const nbaLogos: Record<string, string> = teams.reduce(
+  (acc, team) => {
+    acc[team.name] = team.logo;
+    return acc;
+  },
+  {} as Record<string, string>
+);
+
+const extraLogos: Record<string, string> = {
+  'Minnesota Lynx': 'https://a.espncdn.com/i/teamlogos/wnba/500/min.png',
+  'Las Vegas Aces': 'https://a.espncdn.com/i/teamlogos/wnba/500/lva.png',
+  'Seattle Storm': 'https://a.espncdn.com/i/teamlogos/wnba/500/sea.png',
+  'New York Liberty': 'https://a.espncdn.com/i/teamlogos/wnba/500/nyl.png',
+  'Chicago Sky': 'https://a.espncdn.com/i/teamlogos/wnba/500/chi.png',
+  'Los Angeles Sparks': 'https://a.espncdn.com/i/teamlogos/wnba/500/las.png',
+  'Phoenix Mercury': 'https://a.espncdn.com/i/teamlogos/wnba/500/phx.png',
+  'UConn Huskies': 'https://a.espncdn.com/i/teamlogos/ncaa/500/41.png',
+  'Duke Blue Devils': 'https://a.espncdn.com/i/teamlogos/ncaa/500/150.png',
+  'Kansas Jayhawks': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2305.png',
+  'North Carolina Tar Heels': 'https://a.espncdn.com/i/teamlogos/ncaa/500/153.png',
+  'Baylor Bears': 'https://a.espncdn.com/i/teamlogos/ncaa/500/239.png',
+  'Houston Cougars': 'https://a.espncdn.com/i/teamlogos/ncaa/500/248.png',
+  'Gonzaga Bulldogs': 'https://a.espncdn.com/i/teamlogos/ncaa/500/2250.png',
+  "Saint Mary's Gaels": 'https://a.espncdn.com/i/teamlogos/ncaa/500/2608.png',
+  'Virginia Cavaliers': 'https://a.espncdn.com/i/teamlogos/ncaa/500/258.png',
+  'UCLA Bruins': 'https://a.espncdn.com/i/teamlogos/ncaa/500/26.png',
+  'Arizona Wildcats': 'https://a.espncdn.com/i/teamlogos/ncaa/500/12.png',
+};
+
+const getLogo = (teamName: string): string =>
+  nbaLogos[teamName] ?? extraLogos[teamName] ?? '';
 
 export const scoreTabs: ScoreTab[] = ['Live', 'Past', 'Upcoming'];
 
@@ -27,6 +63,8 @@ export const liveGames: Game[] = [
     league: 'NBA',
     home: 'Los Angeles Lakers',
     away: 'Boston Celtics',
+    homeLogo: getLogo('Los Angeles Lakers'),
+    awayLogo: getLogo('Boston Celtics'),
     status: 'Live',
     homeScore: 104,
     awayScore: 102,
@@ -41,6 +79,8 @@ export const liveGames: Game[] = [
     league: 'NBA',
     home: 'Golden State Warriors',
     away: 'Phoenix Suns',
+    homeLogo: getLogo('Golden State Warriors'),
+    awayLogo: getLogo('Phoenix Suns'),
     status: 'Live',
     homeScore: 97,
     awayScore: 94,
@@ -55,6 +95,8 @@ export const liveGames: Game[] = [
     league: 'NBA',
     home: 'Miami Heat',
     away: 'Milwaukee Bucks',
+    homeLogo: getLogo('Miami Heat'),
+    awayLogo: getLogo('Milwaukee Bucks'),
     status: 'Live',
     homeScore: 112,
     awayScore: 109,
@@ -69,6 +111,8 @@ export const liveGames: Game[] = [
     league: 'NBA',
     home: 'New York Knicks',
     away: 'Philadelphia 76ers',
+    homeLogo: getLogo('New York Knicks'),
+    awayLogo: getLogo('Philadelphia 76ers'),
     status: 'Live',
     homeScore: 88,
     awayScore: 86,
@@ -83,6 +127,8 @@ export const liveGames: Game[] = [
     league: 'NBA',
     home: 'Denver Nuggets',
     away: 'Oklahoma City Thunder',
+    homeLogo: getLogo('Denver Nuggets'),
+    awayLogo: getLogo('Oklahoma City Thunder'),
     status: 'Live',
     homeScore: 76,
     awayScore: 81,
@@ -97,6 +143,8 @@ export const liveGames: Game[] = [
     league: 'WNBA',
     home: 'Minnesota Lynx',
     away: 'Las Vegas Aces',
+    homeLogo: getLogo('Minnesota Lynx'),
+    awayLogo: getLogo('Las Vegas Aces'),
     status: 'Live',
     homeScore: 68,
     awayScore: 71,
@@ -111,6 +159,8 @@ export const liveGames: Game[] = [
     league: 'WNBA',
     home: 'Seattle Storm',
     away: 'New York Liberty',
+    homeLogo: getLogo('Seattle Storm'),
+    awayLogo: getLogo('New York Liberty'),
     status: 'Live',
     homeScore: 59,
     awayScore: 65,
@@ -125,6 +175,8 @@ export const liveGames: Game[] = [
     league: 'NCAAM',
     home: 'UConn Huskies',
     away: 'Duke Blue Devils',
+    homeLogo: getLogo('UConn Huskies'),
+    awayLogo: getLogo('Duke Blue Devils'),
     status: 'Live',
     homeScore: 58,
     awayScore: 54,
@@ -139,6 +191,8 @@ export const liveGames: Game[] = [
     league: 'NCAAM',
     home: 'Kansas Jayhawks',
     away: 'North Carolina Tar Heels',
+    homeLogo: getLogo('Kansas Jayhawks'),
+    awayLogo: getLogo('North Carolina Tar Heels'),
     status: 'Live',
     homeScore: 63,
     awayScore: 60,
@@ -153,6 +207,8 @@ export const liveGames: Game[] = [
     league: 'NCAAM',
     home: 'Baylor Bears',
     away: 'Houston Cougars',
+    homeLogo: getLogo('Baylor Bears'),
+    awayLogo: getLogo('Houston Cougars'),
     status: 'Live',
     homeScore: 51,
     awayScore: 47,
@@ -170,6 +226,8 @@ export const pastGames: Game[] = [
     league: 'NBA',
     home: 'Los Angeles Clippers',
     away: 'Memphis Grizzlies',
+    homeLogo: getLogo('Los Angeles Clippers'),
+    awayLogo: getLogo('Memphis Grizzlies'),
     status: 'Final',
     homeScore: 118,
     awayScore: 107,
@@ -184,6 +242,8 @@ export const pastGames: Game[] = [
     league: 'NBA',
     home: 'Toronto Raptors',
     away: 'Chicago Bulls',
+    homeLogo: getLogo('Toronto Raptors'),
+    awayLogo: getLogo('Chicago Bulls'),
     status: 'Final',
     homeScore: 102,
     awayScore: 99,
@@ -198,6 +258,8 @@ export const pastGames: Game[] = [
     league: 'NBA',
     home: 'San Antonio Spurs',
     away: 'Houston Rockets',
+    homeLogo: getLogo('San Antonio Spurs'),
+    awayLogo: getLogo('Houston Rockets'),
     status: 'Final',
     homeScore: 111,
     awayScore: 114,
@@ -212,6 +274,8 @@ export const pastGames: Game[] = [
     league: 'WNBA',
     home: 'Seattle Storm',
     away: 'Phoenix Mercury',
+    homeLogo: getLogo('Seattle Storm'),
+    awayLogo: getLogo('Phoenix Mercury'),
     status: 'Final',
     homeScore: 84,
     awayScore: 79,
@@ -226,6 +290,8 @@ export const pastGames: Game[] = [
     league: 'WNBA',
     home: 'Las Vegas Aces',
     away: 'Los Angeles Sparks',
+    homeLogo: getLogo('Las Vegas Aces'),
+    awayLogo: getLogo('Los Angeles Sparks'),
     status: 'Final',
     homeScore: 92,
     awayScore: 81,
@@ -240,6 +306,8 @@ export const pastGames: Game[] = [
     league: 'NCAAM',
     home: 'UCLA Bruins',
     away: 'Arizona Wildcats',
+    homeLogo: getLogo('UCLA Bruins'),
+    awayLogo: getLogo('Arizona Wildcats'),
     status: 'Final',
     homeScore: 74,
     awayScore: 71,
@@ -254,6 +322,8 @@ export const pastGames: Game[] = [
     league: 'NCAAM',
     home: 'Gonzaga Bulldogs',
     away: "Saint Mary's Gaels",
+    homeLogo: getLogo('Gonzaga Bulldogs'),
+    awayLogo: getLogo("Saint Mary's Gaels"),
     status: 'Final',
     homeScore: 66,
     awayScore: 62,
@@ -268,6 +338,8 @@ export const pastGames: Game[] = [
     league: 'NCAAM',
     home: 'Duke Blue Devils',
     away: 'Virginia Cavaliers',
+    homeLogo: getLogo('Duke Blue Devils'),
+    awayLogo: getLogo('Virginia Cavaliers'),
     status: 'Final',
     homeScore: 69,
     awayScore: 64,
@@ -282,6 +354,8 @@ export const pastGames: Game[] = [
     league: 'WNBA',
     home: 'New York Liberty',
     away: 'Washington Mystics',
+    homeLogo: getLogo('New York Liberty'),
+    awayLogo: getLogo('Washington Mystics'),
     status: 'Final',
     homeScore: 101,
     awayScore: 93,
@@ -296,6 +370,8 @@ export const pastGames: Game[] = [
     league: 'NBA',
     home: 'Miami Heat',
     away: 'Cleveland Cavaliers',
+    homeLogo: getLogo('Miami Heat'),
+    awayLogo: getLogo('Cleveland Cavaliers'),
     status: 'Final',
     homeScore: 96,
     awayScore: 108,
@@ -313,6 +389,8 @@ export const upcomingGames: Game[] = [
     league: 'NBA',
     home: 'Dallas Mavericks',
     away: 'Sacramento Kings',
+    homeLogo: getLogo('Dallas Mavericks'),
+    awayLogo: getLogo('Sacramento Kings'),
     status: 'Upcoming',
     homeScore: 0,
     awayScore: 0,
@@ -327,6 +405,8 @@ export const upcomingGames: Game[] = [
     league: 'NBA',
     home: 'Golden State Warriors',
     away: 'Los Angeles Lakers',
+    homeLogo: getLogo('Golden State Warriors'),
+    awayLogo: getLogo('Los Angeles Lakers'),
     status: 'Upcoming',
     homeScore: 0,
     awayScore: 0,
@@ -341,6 +421,8 @@ export const upcomingGames: Game[] = [
     league: 'WNBA',
     home: 'Las Vegas Aces',
     away: 'New York Liberty',
+    homeLogo: getLogo('Las Vegas Aces'),
+    awayLogo: getLogo('New York Liberty'),
     status: 'Upcoming',
     homeScore: 0,
     awayScore: 0,
@@ -355,6 +437,8 @@ export const upcomingGames: Game[] = [
     league: 'WNBA',
     home: 'Chicago Sky',
     away: 'Los Angeles Sparks',
+    homeLogo: getLogo('Chicago Sky'),
+    awayLogo: getLogo('Los Angeles Sparks'),
     status: 'Upcoming',
     homeScore: 0,
     awayScore: 0,
@@ -369,6 +453,8 @@ export const upcomingGames: Game[] = [
     league: 'NCAAM',
     home: 'Gonzaga Bulldogs',
     away: 'Kansas Jayhawks',
+    homeLogo: getLogo('Gonzaga Bulldogs'),
+    awayLogo: getLogo('Kansas Jayhawks'),
     status: 'Upcoming',
     homeScore: 0,
     awayScore: 0,
@@ -383,6 +469,8 @@ export const upcomingGames: Game[] = [
     league: 'NCAAM',
     home: 'UConn Huskies',
     away: 'Houston Cougars',
+    homeLogo: getLogo('UConn Huskies'),
+    awayLogo: getLogo('Houston Cougars'),
     status: 'Upcoming',
     homeScore: 0,
     awayScore: 0,
@@ -397,6 +485,8 @@ export const upcomingGames: Game[] = [
     league: 'NBA',
     home: 'Oklahoma City Thunder',
     away: 'Milwaukee Bucks',
+    homeLogo: getLogo('Oklahoma City Thunder'),
+    awayLogo: getLogo('Milwaukee Bucks'),
     status: 'Upcoming',
     homeScore: 0,
     awayScore: 0,
@@ -411,6 +501,8 @@ export const upcomingGames: Game[] = [
     league: 'NBA',
     home: 'Denver Nuggets',
     away: 'Phoenix Suns',
+    homeLogo: getLogo('Denver Nuggets'),
+    awayLogo: getLogo('Phoenix Suns'),
     status: 'Upcoming',
     homeScore: 0,
     awayScore: 0,

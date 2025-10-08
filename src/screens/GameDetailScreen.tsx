@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -81,6 +82,7 @@ const GameDetailScreen: React.FC = () => {
         ) : null}
         <View style={styles.matchupRow}>
           <View style={styles.teamColumn}>
+            <Image source={{ uri: game.homeLogo }} style={styles.teamLogo} />
             <Text style={styles.teamName}>{game.home}</Text>
             <Text style={styles.teamLabel}>Home</Text>
           </View>
@@ -102,6 +104,7 @@ const GameDetailScreen: React.FC = () => {
             {game.status === 'Upcoming' ? '--' : game.awayScore}
           </Text>
           <View style={styles.teamColumn}>
+            <Image source={{ uri: game.awayLogo }} style={styles.teamLogo} />
             <Text style={styles.teamName}>{game.away}</Text>
             <Text style={styles.teamLabel}>Away</Text>
           </View>
@@ -210,6 +213,13 @@ const styles = StyleSheet.create({
   teamColumn: {
     flex: 1,
     alignItems: 'center',
+  },
+  teamLogo: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginBottom: 8,
+    backgroundColor: colors.surface,
   },
   teamName: {
     fontSize: 15,

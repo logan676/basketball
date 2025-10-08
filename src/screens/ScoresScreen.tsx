@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -144,9 +145,17 @@ const ScoresScreen: React.FC = () => {
             onPress={() => handleOpenGame(game)}
           >
             <View style={styles.gameInfo}>
-              <Text style={styles.gameTeams}>
-                {game.home} vs. {game.away}
-              </Text>
+              <View style={styles.teamsRow}>
+                <View style={styles.teamColumn}>
+                  <Image source={{ uri: game.homeLogo }} style={styles.teamLogo} />
+                  <Text style={styles.teamName}>{game.home}</Text>
+                </View>
+                <Text style={styles.vsText}>vs</Text>
+                <View style={styles.teamColumn}>
+                  <Image source={{ uri: game.awayLogo }} style={styles.teamLogo} />
+                  <Text style={styles.teamName}>{game.away}</Text>
+                </View>
+              </View>
               <View style={styles.statusRow}>
                 <View style={statusDotStyle} />
                 <Text style={statusTextStyle}>{game.status}</Text>
@@ -290,11 +299,33 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 16,
   },
-  gameTeams: {
-    fontSize: 16,
+  teamsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  teamColumn: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  teamLogo: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginBottom: 4,
+    backgroundColor: colors.surface,
+  },
+  teamName: {
+    fontSize: 14,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 6,
+    textAlign: 'center',
+  },
+  vsText: {
+    marginHorizontal: 12,
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textMuted,
   },
   statusRow: {
     flexDirection: 'row',
