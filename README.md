@@ -1,6 +1,6 @@
 # Basketball App
 
-Cross-platform basketball companion built with Expo and React Native. The app surfaces news, scores, team overviews, player details, and more through a bottom tab navigator.
+Cross-platform basketball companion built with Expo and React Native. The app surfaces news, scores, team overviews, player details, and more through a bottom tab navigator with dedicated detail screens for articles, players, teams, and games.
 
 ## Tech Stack
 - React Native 0.81 (Expo managed workflow)
@@ -9,6 +9,7 @@ Cross-platform basketball companion built with Expo and React Native. The app su
 - React Navigation 7 (`@react-navigation/native`, bottom tabs, native stack)
 - `@expo/vector-icons` for iconography
 - `react-native-reanimated`, `react-native-gesture-handler`, and `react-native-screens` for enhanced navigation performance
+- TypeScript (strict) via Expo base config
 
 ## Prerequisites
 - Node.js 18+ and npm (comes with Node)
@@ -18,6 +19,11 @@ Cross-platform basketball companion built with Expo and React Native. The app su
 ## Setup
 ```bash
 npm install
+```
+
+Run a one-off type check with:
+```bash
+npx tsc --noEmit
 ```
 
 ## Run (Development)

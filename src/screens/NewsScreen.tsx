@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Image,
   ScrollView,
@@ -8,16 +8,53 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import {
+  CompositeNavigationProp,
+  useNavigation,
+  useTheme,
+} from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { latestNews, newsCategories, topStory } from '../data/news';
+import {
+  latestNews,
+  newsCategories,
+  topStory,
+  type NewsArticle,
+  type NewsCategory,
+} from '../data/news';
 import { colors } from '../theme/colors';
+import type { RootStackParamList, TabParamList } from '../navigation/types';
 
-const NewsScreen = () => {
-  const [activeCategory, setActiveCategory] = useState(newsCategories[0]);
+type NewsScreenNavigationProp = CompositeNavigationProp<
+  BottomTabNavigationProp<TabParamList, 'News'>,
+  NativeStackNavigationProp<RootStackParamList>
+>;
+
+const NewsScreen: React.FC = () => {
+  const [activeCategory, setActiveCategory] =
+    useState<NewsCategory>(newsCategories[0]);
+  const navigation = useNavigation<NewsScreenNavigationProp>();
+  const theme = useTheme();
+
+  const filteredArticles = useMemo(() => {
+    if (activeCategory === 'Top News') {
+      return latestNews;
+    }
+
+    return latestNews.filter((article) => article.category === activeCategory);
+  }, [activeCategory]);
+
+  const handleOpenArticle = useCallback(
+    (article: NewsArticle) => {
+      navigation.navigate('NewsDetail', { articleId: article.id });
+    },
+    [navigation],
+  );
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
       contentContainerStyle={styles.contentContainer}
       showsVerticalScrollIndicator={false}
     >
@@ -30,7 +67,7 @@ const NewsScreen = () => {
 
       <View style={styles.searchBar}>
         <Ionicons name="search-outline" size={18} color={colors.textMuted} />
-        <Text style={styles.searchPlaceholder}>Search News...</Text>
+        <Text style={styles.searchPlaceholder}>Search news...</Text>
       </View>
 
       <View style={styles.categories}>
@@ -56,32 +93,40 @@ const NewsScreen = () => {
         })}
       </View>
 
-      <View style={styles.topCard}>
+      <TouchableOpacity
+        style={styles.topCard}
+        activeOpacity={0.85}
+        onPress={() => handleOpenArticle(topStory)}
+      >
         <Image source={{ uri: topStory.image }} style={styles.topImage} />
         <View style={styles.topContent}>
           <Text style={styles.topTitle}>{topStory.title}</Text>
-          <Text style={styles.topSubtitle}>{topStory.subtitle}</Text>
+          {topStory.subtitle ? (
+            <Text style={styles.topSubtitle}>{topStory.subtitle}</Text>
+          ) : null}
           <Text style={[styles.timeText, styles.topTime]}>
             {topStory.timeAgo}
           </Text>
         </View>
-      </View>
+      </TouchableOpacity>
 
-      <Text style={styles.sectionTitle}>Latest News</Text>
+      <Text style={styles.sectionTitle}>Latest news</Text>
       <View>
-        {latestNews.map((item, index) => (
+        {filteredArticles.map((article, index) => (
           <TouchableOpacity
-            key={item.id}
+            key={article.id}
             style={[
               styles.latestItem,
-              index !== latestNews.length - 1 && styles.latestItemSpacing,
+              index !== filteredArticles.length - 1 && styles.latestItemSpacing,
             ]}
+            activeOpacity={0.85}
+            onPress={() => handleOpenArticle(article)}
           >
-            <Image source={{ uri: item.image }} style={styles.latestImage} />
+            <Image source={{ uri: article.image }} style={styles.latestImage} />
             <View style={styles.latestContent}>
-              <Text style={styles.latestTitle}>{item.title}</Text>
+              <Text style={styles.latestTitle}>{article.title}</Text>
               <Text style={[styles.timeText, styles.latestTime]}>
-                {item.timeAgo}
+                {article.timeAgo}
               </Text>
             </View>
             <Ionicons
@@ -99,7 +144,6 @@ const NewsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   contentContainer: {
     paddingHorizontal: 20,
@@ -198,12 +242,10 @@ const styles = StyleSheet.create({
   },
   topTime: {
     marginTop: 6,
-  },
-  latestTime: {
-    marginTop: 4,
+    color: colors.textMuted,
   },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     color: colors.text,
     marginBottom: 16,
@@ -213,24 +255,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: 18,
-    padding: 14,
+    padding: 12,
   },
   latestItemSpacing: {
     marginBottom: 14,
   },
   latestImage: {
-    width: 52,
-    height: 52,
-    borderRadius: 13,
+    width: 72,
+    height: 72,
+    borderRadius: 14,
     marginRight: 14,
   },
   latestContent: {
     flex: 1,
   },
   latestTitle: {
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: '600',
     color: colors.text,
+  },
+  latestTime: {
+    marginTop: 6,
   },
 });
 

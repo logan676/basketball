@@ -8,10 +8,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { moreOptions } from '../data/more';
+import { moreOptions, type MoreOption } from '../data/more';
 import { colors } from '../theme/colors';
 
-const MoreScreen = () => {
+const MoreScreen: React.FC = () => {
   return (
     <ScrollView
       style={styles.container}
@@ -19,49 +19,61 @@ const MoreScreen = () => {
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.header}>
-        <TouchableOpacity style={styles.headerIcon}>
-          <Ionicons name='chevron-back' size={22} color={colors.text} />
-        </TouchableOpacity>
+        <View style={styles.headerIcon}>
+          <Ionicons name="menu-outline" size={22} color={colors.text} />
+        </View>
         <Text style={styles.title}>More</Text>
         <View style={styles.headerSpacer} />
       </View>
 
       <View style={styles.optionList}>
-        {moreOptions.map((option, index) => (
-          <TouchableOpacity
-            key={option.id}
-            style={[
-              styles.optionRow,
-              index !== moreOptions.length - 1 && styles.optionSpacing,
-            ]}
-          >
-            <View
+        {moreOptions.map((option: MoreOption, index) => {
+          const iconName = option.icon as keyof typeof Ionicons.glyphMap;
+
+          return (
+            <TouchableOpacity
+              key={option.id}
               style={[
-                styles.iconBadge,
-                { backgroundColor: option.tint || colors.primaryMuted },
+                styles.optionRow,
+                index !== moreOptions.length - 1 && styles.optionSpacing,
               ]}
+              activeOpacity={0.85}
             >
+              <View
+                style={[
+                  styles.iconBadge,
+                  { backgroundColor: option.tint || colors.primaryMuted },
+                ]}
+              >
+                <Ionicons
+                  name={iconName}
+                  size={20}
+                  color={option.danger ? colors.danger : colors.primary}
+                />
+              </View>
+              <View style={styles.optionContent}>
+                <Text
+                  style={[
+                    styles.optionTitle,
+                    option.danger && styles.optionDanger,
+                  ]}
+                >
+                  {option.title}
+                </Text>
+                {option.description ? (
+                  <Text style={styles.optionDescription}>
+                    {option.description}
+                  </Text>
+                ) : null}
+              </View>
               <Ionicons
-                name={option.icon}
-                size={20}
-                color={option.danger ? colors.danger : colors.primary}
+                name="chevron-forward"
+                size={18}
+                color={colors.textMuted}
               />
-            </View>
-            <Text
-              style={[
-                styles.optionTitle,
-                option.danger && styles.optionDanger,
-              ]}
-            >
-              {option.title}
-            </Text>
-            <Ionicons
-              name='chevron-forward'
-              size={18}
-              color={colors.textMuted}
-            />
-          </TouchableOpacity>
-        ))}
+            </TouchableOpacity>
+          );
+        })}
       </View>
     </ScrollView>
   );
@@ -127,11 +139,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 14,
   },
-  optionTitle: {
+  optionContent: {
     flex: 1,
+  },
+  optionTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: colors.text,
+  },
+  optionDescription: {
+    marginTop: 4,
+    fontSize: 13,
+    color: colors.textMuted,
   },
   optionDanger: {
     color: colors.danger,

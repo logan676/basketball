@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -7,13 +7,56 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import {
+  CompositeNavigationProp,
+  useNavigation,
+} from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
+import {
+  leagues,
+  liveGames,
+  scoreTabs,
+  type LeagueFilter,
+  type LiveGame,
+  type ScoreTab,
+} from '../data/scores';
 import { colors } from '../theme/colors';
-import { leagues, liveGames, scoreTabs } from '../data/scores';
+import type { RootStackParamList, TabParamList } from '../navigation/types';
 
-const ScoresScreen = () => {
-  const [activeTab, setActiveTab] = useState(scoreTabs[0]);
-  const [activeLeague, setActiveLeague] = useState(leagues[0]);
+type ScoresScreenNavigationProp = CompositeNavigationProp<
+  BottomTabNavigationProp<TabParamList, 'Scores'>,
+  NativeStackNavigationProp<RootStackParamList>
+>;
+
+const ScoresScreen: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<ScoreTab>(scoreTabs[0]);
+  const [activeLeague, setActiveLeague] = useState<LeagueFilter>(leagues[0]);
+  const navigation = useNavigation<ScoresScreenNavigationProp>();
+
+  const filteredGames = useMemo(() => {
+    // Live demo data only contains live games; in a full app this would switch datasets.
+    const games = liveGames.filter((game) => {
+      if (activeLeague === 'All Leagues') {
+        return true;
+      }
+      return game.broadcaster.toUpperCase().includes(activeLeague.replace('NCAA', '').trim());
+    });
+
+    if (activeTab === 'Live') {
+      return games;
+    }
+
+    return games;
+  }, [activeLeague, activeTab]);
+
+  const handleOpenGame = useCallback(
+    (game: LiveGame) => {
+      navigation.navigate('GameDetail', { gameId: game.id });
+    },
+    [navigation],
+  );
 
   return (
     <ScrollView
@@ -72,27 +115,40 @@ const ScoresScreen = () => {
       </View>
 
       <View>
-        {liveGames.map((game, index) => (
-          <View
+        {filteredGames.map((game, index) => (
+          <TouchableOpacity
             key={game.id}
             style={[
               styles.gameRow,
-              index !== liveGames.length - 1 && styles.gameSpacing,
+              index !== filteredGames.length - 1 && styles.gameSpacing,
             ]}
+            activeOpacity={0.85}
+            onPress={() => handleOpenGame(game)}
           >
-            <View>
+            <View style={styles.gameInfo}>
               <Text style={styles.gameTeams}>
                 {game.home} vs. {game.away}
               </Text>
               <View style={styles.statusRow}>
                 <View style={styles.liveDot} />
                 <Text style={styles.statusText}>{game.status}</Text>
+                <Text style={styles.startTime}>{game.startTime}</Text>
               </View>
+              <Text style={styles.broadcastText}>
+                {game.arena} • {game.broadcaster}
+              </Text>
             </View>
-            <Text style={styles.scoreText}>
-              {game.homeScore} - {game.awayScore}
-            </Text>
-          </View>
+            <View style={styles.scoreContainer}>
+              <Text style={styles.scoreText}>{game.homeScore}</Text>
+              <Text style={styles.scoreDivider}>-</Text>
+              <Text style={styles.scoreText}>{game.awayScore}</Text>
+            </View>
+            <Ionicons
+              name="chevron-forward"
+              size={18}
+              color={colors.textMuted}
+            />
+          </TouchableOpacity>
         ))}
       </View>
     </ScrollView>
@@ -181,7 +237,6 @@ const styles = StyleSheet.create({
   },
   gameRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 18,
@@ -190,6 +245,10 @@ const styles = StyleSheet.create({
   },
   gameSpacing: {
     marginBottom: 14,
+  },
+  gameInfo: {
+    flex: 1,
+    marginRight: 16,
   },
   gameTeams: {
     fontSize: 16,
@@ -200,6 +259,7 @@ const styles = StyleSheet.create({
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 4,
   },
   liveDot: {
     width: 8,
@@ -212,11 +272,31 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: colors.danger,
+    marginRight: 8,
+  },
+  startTime: {
+    fontSize: 13,
+    color: colors.textMuted,
+  },
+  broadcastText: {
+    fontSize: 13,
+    color: colors.textMuted,
+  },
+  scoreContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 12,
   },
   scoreText: {
     fontSize: 20,
     fontWeight: '700',
     color: colors.text,
+  },
+  scoreDivider: {
+    marginHorizontal: 6,
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.textMuted,
   },
 });
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Image,
   ScrollView,
@@ -8,12 +8,48 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import {
+  CompositeNavigationProp,
+  useNavigation,
+} from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { teamTabs, teams } from '../data/teams';
+import {
+  type TeamProfile,
+  teamTabs,
+  teams,
+  type TeamTab,
+} from '../data/teams';
 import { colors } from '../theme/colors';
+import type { RootStackParamList, TabParamList } from '../navigation/types';
 
-const TeamsScreen = () => {
-  const [activeTab, setActiveTab] = useState(teamTabs[0]);
+type TeamsScreenNavigationProp = CompositeNavigationProp<
+  BottomTabNavigationProp<TabParamList, 'Teams'>,
+  NativeStackNavigationProp<RootStackParamList>
+>;
+
+const TeamsScreen: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<TeamTab>(teamTabs[0]);
+  const navigation = useNavigation<TeamsScreenNavigationProp>();
+
+  const filteredTeams = useMemo(() => {
+    switch (activeTab) {
+      case 'Favorites':
+        return teams.slice(0, 2);
+      case 'Following':
+        return teams.slice(0, 3);
+      default:
+        return teams;
+    }
+  }, [activeTab]);
+
+  const handleOpenTeam = useCallback(
+    (team: TeamProfile) => {
+      navigation.navigate('TeamDetail', { teamId: team.id });
+    },
+    [navigation],
+  );
 
   return (
     <ScrollView
@@ -24,12 +60,12 @@ const TeamsScreen = () => {
       <View style={styles.header}>
         <Text style={styles.title}>Teams</Text>
         <TouchableOpacity style={styles.headerIcon}>
-          <Ionicons name='search-outline' size={22} color={colors.text} />
+          <Ionicons name="search-outline" size={22} color={colors.text} />
         </TouchableOpacity>
       </View>
 
       <View style={styles.searchBar}>
-        <Ionicons name='search-outline' size={18} color={colors.textMuted} />
+        <Ionicons name="search-outline" size={18} color={colors.textMuted} />
         <Text style={styles.searchPlaceholder}>Search for teams</Text>
       </View>
 
@@ -51,13 +87,15 @@ const TeamsScreen = () => {
       </View>
 
       <View>
-        {teams.map((team, index) => (
+        {filteredTeams.map((team, index) => (
           <TouchableOpacity
             key={team.id}
             style={[
               styles.teamRow,
-              index !== teams.length - 1 && styles.teamSpacing,
+              index !== filteredTeams.length - 1 && styles.teamSpacing,
             ]}
+            activeOpacity={0.85}
+            onPress={() => handleOpenTeam(team)}
           >
             <Image source={{ uri: team.logo }} style={styles.teamLogo} />
             <View style={styles.teamInfo}>
@@ -65,7 +103,7 @@ const TeamsScreen = () => {
               <Text style={styles.teamCity}>{team.city}</Text>
             </View>
             <Ionicons
-              name='chevron-forward'
+              name="chevron-forward"
               size={18}
               color={colors.textMuted}
             />

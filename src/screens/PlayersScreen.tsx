@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   Image,
   ScrollView,
@@ -8,12 +8,49 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import {
+  CompositeNavigationProp,
+  useNavigation,
+} from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { playerTabs, players } from '../data/players';
+import {
+  type PlayerProfile,
+  playerTabs,
+  players,
+  type PlayerTab,
+} from '../data/players';
 import { colors } from '../theme/colors';
+import type { RootStackParamList, TabParamList } from '../navigation/types';
 
-const PlayersScreen = () => {
-  const [activeTab, setActiveTab] = useState(playerTabs[0]);
+type PlayersScreenNavigationProp = CompositeNavigationProp<
+  BottomTabNavigationProp<TabParamList, 'Players'>,
+  NativeStackNavigationProp<RootStackParamList>
+>;
+
+const PlayersScreen: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<PlayerTab>(playerTabs[0]);
+  const navigation = useNavigation<PlayersScreenNavigationProp>();
+
+  const filteredPlayers = useMemo(() => {
+    switch (activeTab) {
+      case 'Favorites':
+        return players.filter((player) => player.favorite);
+      case 'My Players':
+        // Placeholder logic: reuse favorites to represent saved players
+        return players.filter((player) => player.favorite);
+      default:
+        return players;
+    }
+  }, [activeTab]);
+
+  const handleOpenPlayer = useCallback(
+    (player: PlayerProfile) => {
+      navigation.navigate('PlayerDetail', { playerId: player.id });
+    },
+    [navigation],
+  );
 
   return (
     <ScrollView
@@ -24,12 +61,12 @@ const PlayersScreen = () => {
       <View style={styles.header}>
         <Text style={styles.title}>Players</Text>
         <TouchableOpacity style={styles.headerIcon}>
-          <Ionicons name='search-outline' size={22} color={colors.text} />
+          <Ionicons name="search-outline" size={22} color={colors.text} />
         </TouchableOpacity>
       </View>
 
       <View style={styles.searchBar}>
-        <Ionicons name='search-outline' size={18} color={colors.textMuted} />
+        <Ionicons name="search-outline" size={18} color={colors.textMuted} />
         <Text style={styles.searchPlaceholder}>Search players</Text>
       </View>
 
@@ -51,13 +88,15 @@ const PlayersScreen = () => {
       </View>
 
       <View>
-        {players.map((player, index) => (
+        {filteredPlayers.map((player, index) => (
           <TouchableOpacity
             key={player.id}
             style={[
               styles.playerRow,
-              index !== players.length - 1 && styles.playerSpacing,
+              index !== filteredPlayers.length - 1 && styles.playerSpacing,
             ]}
+            activeOpacity={0.85}
+            onPress={() => handleOpenPlayer(player)}
           >
             <Image source={{ uri: player.image }} style={styles.playerImage} />
             <View style={styles.playerInfo}>
