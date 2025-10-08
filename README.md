@@ -2,6 +2,12 @@
 
 Cross-platform basketball companion built with Expo and React Native. The app surfaces news, scores, team overviews, player details, and more through a bottom tab navigator with dedicated detail screens for articles, players, teams, and games.
 
+## Features
+- Bottom tab navigation across News, Scores, Teams, Players, and More.
+- Tap any list item (news story, game, team, player) to open an in-depth native stack detail view.
+- Strong typing across navigation params, data models, and theming with strict TypeScript.
+- Works in Expo Go with shared code targeting iOS, Android, and web.
+
 ## Tech Stack
 - React Native 0.81 (Expo managed workflow)
 - Expo SDK 54
@@ -10,6 +16,16 @@ Cross-platform basketball companion built with Expo and React Native. The app su
 - `@expo/vector-icons` for iconography
 - `react-native-reanimated`, `react-native-gesture-handler`, and `react-native-screens` for enhanced navigation performance
 - TypeScript (strict) via Expo base config
+
+## Project Structure
+```
+App.tsx                 # Tab + stack navigation wiring
+src/
+  data/                 # Typed mock data sources (news, scores, teams, players, more)
+  navigation/           # Shared navigation type definitions
+  screens/              # Feature tabs and detail screens (TypeScript/TSX)
+  theme/                # Shared theme tokens (colors, spacing, etc.)
+```
 
 ## Prerequisites
 - Node.js 18+ and npm (comes with Node)
